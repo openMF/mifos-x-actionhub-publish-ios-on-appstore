@@ -1,0 +1,111 @@
+name: 'Publish iOS App to App Store'
+description: 'Publish iOS app to App Store using Fastlane and App Store Connect API'
+author: 'Mifos Initiative'
+branding:
+  icon: upload
+  color: red
+
+inputs:
+  app_identifier:
+    required: true
+    description: 'The unique bundle identifier for the iOS application'
+
+  git_url:
+    required: true
+    description: 'Git URL to the private repository containing certificates and provisioning profiles for code signing (used by Fastlane Match)'
+
+  git_branch:
+    required: true
+    description: 'Branch name inside the certificates repository that Fastlane Match should use to fetch signing assets'
+
+  match_type:
+    required: true
+    description: 'Type of provisioning profile to fetch using Match (e.g., adhoc, appstore, development)'
+
+  provisioning_profile_name:
+    required: true
+    description: 'Name of the provisioning profile to use for code signing (e.g., match AdHoc com.example.app or match AppStore com.example.app)'
+
+  metadata_path:
+    required: true
+    description: 'Path to the metadata directory containing information about the app (e.g., app name, description, screenshots, etc.)'
+
+  appstore_key_id:
+    required: true
+    description: 'Key ID from App Store Connect API Key'
+
+  appstore_issuer_id:
+    required: true
+    description: 'Issuer ID from App Store Connect API Key'
+
+  appstore_auth_key:
+    required: true
+    description: 'Base64-encoded contents of the .p8 private key file'
+
+  match_password:
+    required: true
+    description: 'Password used to encrypt/decrypt the certificates repository used by match'
+
+  match_ssh_private_key:
+    required: true
+    description: 'SSH private key for accessing the certificates repository'
+
+runs:
+  using: composite
+  steps:
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        bundler-cache: true
+
+    - name: Install Fastlane dependencies
+      shell: bash
+      run: |
+        gem install bundler
+        bundler install --jobs 4 --retry 3
+
+    - name: Set up SSH for Match
+      shell: bash
+      env:
+        MATCH_SSH_PRIVATE_KEY: ${{ inputs.match_ssh_private_key }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$MATCH_SSH_PRIVATE_KEY" | base64 --decode > ~/.ssh/match_ci_key
+        chmod 600 ~/.ssh/match_ci_key
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
+        echo -e "Host github.com\n  IdentityFile ~/.ssh/match_ci_key\n  StrictHostKeyChecking no" >> ~/.ssh/config
+
+    - name: Set up Auth key file
+      shell: bash
+      env:
+        AUTH_KEY: ${{ inputs.appstore_auth_key }}
+      run: |
+        mkdir -p secrets
+        echo "$AUTH_KEY" | base64 --decode > secrets/Auth_key.p8
+
+    - name: Run Fastlane release lane
+      shell: bash
+      env:
+        APP_IDENTIFIER: ${{ inputs.app_identifier }}
+        GIT_URL: ${{ inputs.git_url }}
+        GIT_BRANCH: ${{ inputs.git_branch }}
+        MATCH_TYPE: ${{ inputs.match_type }}
+        PROVISIONING_PROFILE_NAME: ${{ inputs.provisioning_profile_name }}
+        METADATA_PATH: ${{ inputs.metadata_path }}
+        APPSTORE_KEY_ID: ${{ inputs.appstore_key_id }}
+        APPSTORE_ISSUER_ID: ${{ inputs.appstore_issuer_id }}
+        MATCH_PASSWORD: ${{ inputs.match_password }}
+      run: |
+        bundle exec fastlane ios release \
+        app_identifier:"$APP_IDENTIFIER" \
+        git_url:"$GIT_URL" \
+        git_branch:"$GIT_BRANCH" \
+        match_type:"$MATCH_TYPE" \
+        provisioning_profile_name:"$PROVISIONING_PROFILE_NAME" \
+        metadata_path:"$METADATA_PATH" \
+        appstore_key_id:"$APPSTORE_KEY_ID" \
+        appstore_issuer_id:"$APPSTORE_ISSUER_ID" \
+        match_password:"$MATCH_PASSWORD" \
+        get_private_key:~/.ssh/match_ci_key \
+        key_file_path:secrets/Auth_key.p8
