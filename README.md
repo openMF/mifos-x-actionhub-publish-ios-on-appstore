@@ -1,25 +1,8 @@
-# KMP Publish iOS App to App Store
+# KMP Publish iOS App to TestFlight
 
-This GitHub Action automates the process of building and distributing an iOS application to the App
-Store using Fastlane. It supports secure code signing via Fastlane Match, handles build number
-incrementing, metadata management, and uploads the app to the App Store via App Store Connect API
-keys.
+This GitHub Action automates the process of building and distributing an iOS application to TestFlight using Fastlane. It supports secure code signing via Fastlane Match, handles build number incrementing, and uploads the app to TestFlight via App Store Connect API keys.
 
-## Configuration
-
-iOS configuration inputs are optional (except `metadata_path`). Configuration is read from
-`fastlane-config/project_config.rb` in the project repository when parameters are not provided.
-
-**Supported configuration methods:**
-
-- Explicit parameters (backward compatible with previous versions)
-- Automatic extraction from `project_config.rb`
-
-See usage examples below for implementation details.
-
----
-
-Start from local first. If it works locally, it will definitely work on CI.
+Start from local first.</strong> If it works locally, it will definitely work on CI.
 
 <hr data-start="378" data-end="381" class="">
 
@@ -35,11 +18,9 @@ Start from local first. If it works locally, it will definitely work on CI.
 ruby -v
 fastlane -v
 ```
-
 <hr data-start="378" data-end="381" class="">
 
 ## 2. Apple Developer Setup
-
 - Go to [Apple Developer Console](https://developer.apple.com/account).
 
 - Make sure you have at least one registered device:  
@@ -48,7 +29,6 @@ fastlane -v
 <hr data-start="378" data-end="381" class="">
 
 ## 3. Set Up Fastlane in Your KMP iOS Project
-
 In your terminal: (inside your root project)
 
 ```
@@ -56,7 +36,6 @@ fastlane init
 ```
 
 When prompted:
-
 1. Choose option:
    `3. Automate App Store distribution`
 
@@ -65,18 +44,15 @@ When prompted:
 
 3. App Identifier:
    If it doesn't exist, you'll see:
-
 ```
 Checking if the app 'org.your.bundle.id' exists in your Apple Developer Portal..
 It looks like the app 'org.your.bundle.id' isn't available on the Apple Developer Portal
 Do you want fastlane to create the App ID for you on the Apple Developer Portal? (y/n)
 ```
-
 Type y
 Then enter App Name (can be anything, just make sure it's unique)
 
 4. Then:
-
 ```
 Checking if the app 'org.your.bundle.id' exists on App Store Connect..
 It looks like the app isn't available on App Store Connect
@@ -89,20 +65,15 @@ If it fails, go manually:  https://appstoreconnect.apple.com/apps → + New App 
 Then return to the terminal and re-run the setup.
 
 5. Manage App Metadata: Fastlane will ask:
-
 ```
 Would you like fastlane to manage your app's metadata? (y/n)
 ```
-
-Type y. This will create a metadata folder with .txt files for app details (e.g., name, description,
-keywords) and download existing screenshots into a screenshots folder.
+Type y. This will create a metadata folder with .txt files for app details (e.g., name, description, keywords) and download existing screenshots into a screenshots folder.
 
 <hr data-start="378" data-end="381" class="">
 
 ## 4. Generated Files
-
 After init, you’ll see:
-
 ```
 rootProject/
 └── fastlane/
@@ -112,7 +83,6 @@ rootProject/
     ├── Deliverfile
     └── Fastfile
 ```
-
 - Appfile: Stores basic metadata like your Apple ID and app identifier.
 - Deliverfile: Configures metadata and screenshot delivery to the App Store.
 - Fastfile: Defines the automation workflow for App Store distribution.
@@ -125,24 +95,20 @@ rootProject/
 
 **App Publishing Details**
 
-For detailed guidance on preparing your app for the App Store, including metadata, app details, and
-submission requirements, refer to:
+For detailed guidance on preparing your app for the App Store, including metadata, app details, and submission requirements, refer to:
 https://help.apple.com/app-store-connect/en.lproj/static.html#dev354659071
 
 This includes:
-
 - Filling out app metadata (name, description, keywords, etc.) in the metadata/ folder.
 - Providing app information like privacy policy, support URL, and categories.
 - Preparing your app for review (e.g., demo account details, review notes).
 
 **Screenshot Specifications**
 
-Screenshots must meet Apple's requirements for size and quantity. For detailed specifications, refer
-to:
+Screenshots must meet Apple's requirements for size and quantity. For detailed specifications, refer to:
 https://developer.apple.com/help/app-store-connect/reference/screenshot-specifications
 
 **Requirements:**
-
 - Quantity: At least 1 screenshot per device type, with a maximum of 10 per device type.
 - Devices to Support: Create screenshots for iPhone, iPad, and Apple Watch.
 - Dimensions:
@@ -152,17 +118,14 @@ https://developer.apple.com/help/app-store-connect/reference/screenshot-specific
     - Apple Watch Ultra: 410 × 502 pixels.
 
 **Steps to Create Screenshots:**
-
 1. Capture screenshots for each device type using a simulator or real device.
 2. Ensure the screenshots meet the exact dimensions listed above.
-3. Name the screenshots following this convention (good practice):
-   `[index]_APP_[DEVICE_TYPE]_[DISPLAY/GEN]_[RESOLUTION]_[INDEX].png`.
+3. Name the screenshots following this convention (good practice): `[index]_APP_[DEVICE_TYPE]_[DISPLAY/GEN]_[RESOLUTION]_[INDEX].png`.
     - Example: `0_APP_IPHONE_65_0.png`, `1_APP_IPAD_PRO_3GEN_129_1.png`.
 4. Place the screenshots in a localized folder inside `screenshots/`, such as `screenshots/en-GB/`.
 
 Example Screenshot Structure:
-For `en-GB` localization, your `screenshots/en-GB/` folder might look like this (with at least 1
-screenshot per device type, up to 10):
+For `en-GB` localization, your `screenshots/en-GB/` folder might look like this (with at least 1 screenshot per device type, up to 10):
 
 ```
 screenshots/
@@ -182,13 +145,10 @@ screenshots/
 ```
 
 ## 6. Configure Code Signing with fastlane match
-
 Now let’s set up automatic provisioning and code signing with Fastlane Match.
 
 Step-by-step:
-
 1. Run Match Init
-
 ```
 fastlane match init
 ```
@@ -206,7 +166,6 @@ It will ask:
 3. s3
 4. gitlab_secure_files
 ```
-
 Type 1 and press enter.
 
 We’ll store certificates and provisioning profiles in a private Git repository.
@@ -227,38 +186,27 @@ https://github.com/your-org/your-app-match-certificates.git.</p>
 4. Edit Matchfile
 
 Open the newly created Matchfile in your iosApp/fastlane/ folder. You’ll see:
-
 ```
 type("development")
 ```
-
 Replace "development" with "appstore" since we’re deploying to TestFlight:
-
 ```
 type("appstore")
 ```
-
 <hr data-start="378" data-end="381" class="">
 
 ## 7. Generate Certificates & Profiles
-
 Now we’ll actually create and fetch the necessary provisioning profile and certificate.
-
 ```
 fastlane match appstore
 ```
-
 It will ask:
-
 ```
 Enter the passphrase that should be used to encrypt/decrypt your certificates
 ```
-
-Create a secure passphrase (save it somewhere!). This will encrypt your certificates in the Git
-repo.
+Create a secure passphrase (save it somewhere!). This will encrypt your certificates in the Git repo.
 
 You’ll later add this to your GitHub repo as a secret:
-
 ```
 MATCH_PASSWORD=your_passphrase
 ```
@@ -266,19 +214,15 @@ MATCH_PASSWORD=your_passphrase
 <hr data-start="378" data-end="381" class="">
 
 ## 8. Verify on Apple Developer Portal
-
 After the above, Fastlane will automatically:
 
-- Create a Distribution Certificate
-  at [Certificates List](https://developer.apple.com/account/resources/certificates/list)
+- Create a Distribution Certificate at [Certificates List](https://developer.apple.com/account/resources/certificates/list)
 
-- Create a Provisioning Profile
-  at [Profiles List](https://developer.apple.com/account/resources/profiles/list)
+- Create a Provisioning Profile at [Profiles List](https://developer.apple.com/account/resources/profiles/list)
 
 <hr data-start="378" data-end="381" class="">
 
 ## 9. Xcode Configuration
-
 Now link the generated provisioning profile to your project manually:
 
 1. Open iosApp.xcodeproj in Xcode.
@@ -296,7 +240,6 @@ Now link the generated provisioning profile to your project manually:
 <hr data-start="378" data-end="381" class="">
 
 ## 10. Create App Store Connect API Key
-
 1. Go to [Users and Access](https://appstoreconnect.apple.com/access/api) → Keys
 
 2. Click + to generate a new key
@@ -314,32 +257,24 @@ Save them somewhere secure.
 <hr data-start="378" data-end="381" class="">
 
 ## 11. Add the Private Key to Project
-
 Place your .p8 file inside:
-
 ```
 secrets/Api_key.p8
 ```
-
 Add secrets/Api_key.p8 to .gitignore (probably it will directly be added in `.gitignore`)
 
 <hr data-start="378" data-end="381" class="">
 
 ## 12. Step-by-Step: SSH Setup for Fastlane Match
-
 1. Generate SSH Key Locally<br>
    In your terminal, run:
-
 ```yaml
 ssh-keygen -t ed25519 -C "your_email@example.com"
 ```
-
 It will ask for a file path. Press enter a custom path like:
-
 ```yaml
 ~/.ssh/match_ci_key
 ```
-
 You can skip setting a passphrase when prompted (just hit enter twice).
 
 This generates two files:
@@ -350,14 +285,11 @@ This generates two files:
 
 2. Add the Private Key to the SSH Agent (optional but helpful)
    This step ensures the key is used during local development.
-
 ```yaml
 eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/match_ci_key
 ```
-
 3. Add the Public Key to Your Certificates Repo (GitHub)
-
 - Go to your certificates repo on GitHub (e.g., openMF/ios-provisioning-profile).
 - Go to Settings → Deploy Keys.
 - Click “Add deploy key”.
@@ -366,21 +298,17 @@ ssh-add ~/.ssh/match_ci_key
 ```yaml
 cat ~/.ssh/match_ci_key.pub
 ```
-
 - Check **Allow write access**.
 - Click Add key.
 
 4. Convert the Private Key to Base64
    This is how we pass it to GitHub Actions securely.
-
 ```yaml
 base64 -i ~/.ssh/match_ci_key | pbcopy
 ```
-
 This command copies the base64-encoded private key to your clipboard (macOS).
 
 5. Save the Private Key as a GitHub Secret
-
 - Go to the repo with your Fastfile (the project repo, not the certs repo).
 - Navigate to Settings → Secrets and variables → Actions → New repository secret.
 - Add the following:
@@ -390,7 +318,6 @@ This command copies the base64-encoded private key to your clipboard (macOS).
 <hr data-start="378" data-end="381" class="">
 
 ## 13. Fastfile
-
 ```yaml
 default_platform(:ios)
 
@@ -469,19 +396,15 @@ precheck_include_in_app_purchases: false
 <hr data-start="378" data-end="381" class="">
 
 ## 14. Test Locally
-
 ```
 bundle exec fastlane ios release
 ```
-
 <hr data-start="378" data-end="381" class="">
 
 ## deploy-ios.yml (Caller)
-
-### Configuration from project_config.rb
-
+In your project .github/workflows/deploy-ios-caller.yml
 ```yaml
-name: Deploy iOS to App Store
+name: Deploy iOS to App Store via Composite Action
 
 on:
   workflow_dispatch:
@@ -494,49 +417,18 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Deploy to App Store
-        uses: openMF/mifos-x-actionhub-publish-ios-on-appstore@v2.0.0
+      - name: Use Deploy iOS Action
+        uses: openMF/mifos-x-actionhub-publish-ios-on-appstore@main
         with:
-          metadata_path: './fastlane/metadata'
-          # Configuration read from fastlane-config/project_config.rb
-          # Only secrets needed:
-          appstore_key_id: ${{ secrets.APPSTORE_KEY_ID }}
-          appstore_issuer_id: ${{ secrets.APPSTORE_ISSUER_ID }}
-          appstore_auth_key: ${{ secrets.APPSTORE_AUTH_KEY }}
-          match_password: ${{ secrets.MATCH_PASSWORD }}
-          match_ssh_private_key: ${{ secrets.MATCH_SSH_PRIVATE_KEY }}
-```
-
-### Explicit Parameter Configuration
-
-```yaml
-name: Deploy iOS to App Store
-
-on:
-  workflow_dispatch:
-
-jobs:
-  deploy:
-    runs-on: macos-latest
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Deploy to App Store
-        uses: openMF/mifos-x-actionhub-publish-ios-on-appstore@v2.0.0
-        with:
-          # Explicit configuration:
           app_identifier: 'org.your.bundle.id'
           git_url: 'git@github.com:your-org/your-app-certificates.git'
           git_branch: 'master'
           match_type: 'appstore'
           provisioning_profile_name: 'match AppStore org.your.bundle.id'
           metadata_path: './fastlane/metadata'
-          # Secrets:
           appstore_key_id: ${{ secrets.APPSTORE_KEY_ID }}
           appstore_issuer_id: ${{ secrets.APPSTORE_ISSUER_ID }}
-          appstore_auth_key: ${{ secrets.APPSTORE_AUTH_KEY }}
+          appstore_auth_key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
           match_password: ${{ secrets.MATCH_PASSWORD }}
           match_ssh_private_key: ${{ secrets.MATCH_SSH_PRIVATE_KEY }}
 ```
@@ -545,10 +437,10 @@ jobs:
 
 ## GitHub Secrets Required
 
- Secret                | Description                       
------------------------|-----------------------------------
- APPSTORE_KEY_ID       | From App Store Connect API        
- APPSTORE_ISSUER_ID    | From App Store Connect API        
- APPSTORE_PRIVATE_KEY  | Paste full .p8 content here       
- MATCH_PASSWORD        | Password for encrypted match repo 
- MATCH_SSH_PRIVATE_KEY | SSH private key for match repo    
+Secret | Description
+-- | --
+APPSTORE_KEY_ID | From App Store Connect API
+APPSTORE_ISSUER_ID | From App Store Connect API
+APPSTORE_PRIVATE_KEY | Paste full .p8 content here
+MATCH_PASSWORD | Password for encrypted match repo
+MATCH_SSH_PRIVATE_KEY | SSH private key for match repo
