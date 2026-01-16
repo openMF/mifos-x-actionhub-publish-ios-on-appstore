@@ -7,28 +7,28 @@ branding:
 
 inputs:
   app_identifier:
-    required: true
-    description: 'The unique bundle identifier for the iOS application'
+    required: false
+    description: 'The unique bundle identifier for the iOS application (optional - reads from project_config.rb if not provided)'
 
   git_url:
-    required: true
-    description: 'Git URL to the private repository containing certificates and provisioning profiles for code signing (used by Fastlane Match)'
+    required: false
+    description: 'Git URL to the private repository containing certificates and provisioning profiles for code signing (optional - reads from project_config.rb if not provided)'
 
   git_branch:
-    required: true
-    description: 'Branch name inside the certificates repository that Fastlane Match should use to fetch signing assets'
+    required: false
+    description: 'Branch name inside the certificates repository that Fastlane Match should use to fetch signing assets (optional - reads from project_config.rb if not provided)'
 
   match_type:
-    required: true
-    description: 'Type of provisioning profile to fetch using Match (e.g., adhoc, appstore, development)'
+    required: false
+    description: 'Type of provisioning profile to fetch using Match (optional - reads from project_config.rb if not provided)'
 
   provisioning_profile_name:
-    required: true
-    description: 'Name of the provisioning profile to use for code signing (e.g., match AdHoc com.example.app or match AppStore com.example.app)'
+    required: false
+    description: 'Name of the provisioning profile to use for code signing (optional - reads from project_config.rb if not provided)'
 
   metadata_path:
-    required: true
-    description: 'Path to the metadata directory containing information about the app (e.g., app name, description, screenshots, etc.)'
+    required: false
+    description: 'Path to the metadata directory containing information about the app (optional - reads from project_config.rb if not provided)'
 
   appstore_key_id:
     required: true
@@ -71,7 +71,7 @@ runs:
         MATCH_SSH_PRIVATE_KEY: ${{ inputs.match_ssh_private_key }}
       run: |
         mkdir -p ~/.ssh
-        echo "$MATCH_SSH_PRIVATE_KEY" | base64 --decode > ~/.ssh/match_ci_key
+        echo "$MATCH_SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/match_ci_key
         chmod 600 ~/.ssh/match_ci_key
         ssh-keyscan github.com >> ~/.ssh/known_hosts
         echo -e "Host github.com\n  IdentityFile ~/.ssh/match_ci_key\n  StrictHostKeyChecking no" >> ~/.ssh/config
@@ -82,7 +82,7 @@ runs:
         AUTH_KEY: ${{ inputs.appstore_auth_key }}
       run: |
         mkdir -p secrets
-        echo "$AUTH_KEY" | base64 --decode > secrets/Auth_key.p8
+        echo "$AUTH_KEY" | base64 -d > secrets/Auth_key.p8
 
     - name: Run Fastlane release lane
       shell: bash
