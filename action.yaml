@@ -107,5 +107,5 @@ runs:
         appstore_key_id:"$APPSTORE_KEY_ID" \
         appstore_issuer_id:"$APPSTORE_ISSUER_ID" \
         match_password:"$MATCH_PASSWORD" \
-        get_private_key:~/.ssh/match_ci_key \
-        key_file_path:secrets/Auth_key.p8
+        git_private_key:~/.ssh/match_ci_key \
+        key_filepath:secrets/Auth_key.p8
