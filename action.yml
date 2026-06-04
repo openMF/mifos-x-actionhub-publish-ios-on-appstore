@@ -1,0 +1,75 @@
+# Composite action: Submit iOS app to App Store for review
+# Patched for fastlane-modernization sub-plan 12:
+#   - AC19: SHA-pin ruby/setup-ruby
+#   - AC20: rename MATCH_SSH_PRIVATE_KEY → MATCH_GIT_PRIVATE_KEY (canonical)
+name: 'Publish iOS to App Store'
+description: 'Build signed IPA with appstore profile and submit for App Store review.'
+
+inputs:
+  ios_package_name:
+    description: 'iOS module name'
+    required: true
+  shared_module:
+    description: 'KMP shared module path'
+    required: true
+  use_cocoapods:
+    description: 'Install CocoaPods'
+    required: false
+    default: 'false'
+  appstore_key_id:
+    description: 'App Store Connect API key ID'
+    required: true
+  appstore_issuer_id:
+    description: 'App Store Connect issuer ID'
+    required: true
+  appstore_auth_key:
+    description: 'Base64 .p8 key'
+    required: true
+  match_password:
+    description: 'Fastlane Match passphrase'
+    required: true
+  match_git_private_key:
+    description: 'SSH key for Match repo (canonical — AC20)'
+    required: false
+  match_ssh_private_key:
+    description: 'DEPRECATED — use match_git_private_key. Removed in v2.0.'
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Ruby (SHA-pinned — AC19)
+      uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f  # v1.232.0
+      with:
+        bundler-cache: true
+
+    - name: Inflate secrets
+      shell: bash
+      env:
+        APPSTORE_AUTH_KEY_B64: ${{ inputs.appstore_auth_key }}
+        # AC20 canonical name with v1.x fallback to the deprecated input.
+        MATCH_GIT_PRIVATE_KEY: ${{ inputs.match_git_private_key || inputs.match_ssh_private_key }}
+      run: |
+        mkdir -p secrets ~/.ssh
+        echo "$APPSTORE_AUTH_KEY_B64" | base64 --decode > secrets/AuthKey.p8
+        printf '%s' "$MATCH_GIT_PRIVATE_KEY" > secrets/match_ci_key
+        chmod 600 secrets/match_ci_key
+        cat > ~/.ssh/config <<'EOF'
+        Host github.com
+          IdentityFile $(pwd)/secrets/match_ci_key
+          StrictHostKeyChecking no
+        EOF
+
+    - name: Submit to App Store
+      shell: bash
+      env:
+        MATCH_PASSWORD: ${{ inputs.match_password }}
+        MATCH_GIT_PRIVATE_KEY: ${{ inputs.match_git_private_key || inputs.match_ssh_private_key }}
+        APPSTORE_KEY_ID: ${{ inputs.appstore_key_id }}
+        APPSTORE_ISSUER_ID: ${{ inputs.appstore_issuer_id }}
+      run: bundle exec fastlane ios release
+
+    - name: Cleanup
+      shell: bash
+      if: always()
+      run: rm -f secrets/AuthKey.p8 secrets/match_ci_key
